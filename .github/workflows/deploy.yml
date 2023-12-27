@@ -1,0 +1,39 @@
+name: Workflow for S3 Deploy
+on:
+# Quiero que se ejecute esto cuando hace push
+  push:
+    branches: [main]
+# Quiero que se ejecute cuando se hace un pull request
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize]
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v2
+        with:
+          cache: 'npm'
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm i
+
+      - name: Build
+        run: npm run build
+
+      # - name: Configure AWS credentials
+      #   uses: aws-actions/configure-aws-credentials@v1
+      #   with:
+      #     aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID}}
+      #     aws-secret-access-key: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+      #     aws-region: us-east-1
+      - name: Install Amplify CLI
+        run: npm install -g @aws-amplify/cli
+      - name: Configure Amplify
+        run:  amplify configure
+      - name: Deploy to Amplify
+        run: amplify publish
